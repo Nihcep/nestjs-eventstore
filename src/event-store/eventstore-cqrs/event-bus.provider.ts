@@ -18,6 +18,7 @@ import {
 import { EventStoreBus, IEventConstructors } from './event-store.bus';
 import { EventStore } from '../event-store.class';
 import { CqrsOptions } from '@nestjs/cqrs/dist/interfaces/cqrs-options.interface';
+import { IAggregateEvent } from '../shared/aggregate-event.interface';
 
 export enum EventStoreSubscriptionType {
   Persistent,
@@ -85,7 +86,7 @@ export class EventBusProvider extends ObservableBus<IEvent>
   }
 
   publishAll(events: IEvent[]) {
-    (events || []).forEach(event => this._publisher.publish(event));
+    (events || []).forEach(event => this.publish(event, (event as IAggregateEvent).streamName));
   }
 
   bind(handler: IEventHandler<IEvent>, name: string) {
@@ -119,8 +120,9 @@ export class EventBusProvider extends ObservableBus<IEvent>
       return;
     }
     const eventsNames = this.reflectEventsNames(handler);
-    eventsNames.map(event =>
-      this.bind(instance as IEventHandler<IEvent>, event.name),
+    eventsNames.map(event => {
+      return this.bind(instance as IEventHandler<IEvent>, event.name)
+    }
     );
   }
 

@@ -1,14 +1,24 @@
 import { Global, Module, DynamicModule } from '@nestjs/common';
 import { EventStore } from './event-store.class';
-import { ConnectionSettings, TcpEndPoint } from 'node-eventstore-client';
+import {
+  ChannelCredentialOptions,
+  DNSClusterOptions,
+  GossipClusterOptions,
+  SingleNodeOptions,
+} from '@eventstore/db-client';
+
+export type ConnectionEndpoint =
+  | DNSClusterOptions
+  | GossipClusterOptions
+  | SingleNodeOptions;
 
 export interface EventStoreModuleOptions {
-  connectionSettings: ConnectionSettings;
-  endpoint: TcpEndPoint;
+  endpoint: ConnectionEndpoint;
+  settings: ChannelCredentialOptions;
 }
 
 export interface EventStoreModuleAsyncOptions {
-  useFactory: (...args: any[]) => Promise<any> | any;
+  useFactory: (...args: any[]) => Promise<EventStoreModuleOptions> | any;
   inject?: any[];
 }
 
@@ -18,10 +28,8 @@ export interface EventStoreModuleAsyncOptions {
   exports: [EventStore],
 })
 export class EventStoreModule {
-  static forRoot(
-    settings: ConnectionSettings,
-    endpoint: TcpEndPoint,
-  ): DynamicModule {
+  static forRoot(options: EventStoreModuleOptions): DynamicModule {
+    const { settings, endpoint } = options;
     return {
       module: EventStoreModule,
       providers: [
@@ -43,10 +51,9 @@ export class EventStoreModule {
         {
           provide: EventStore,
           useFactory: async (...args) => {
-            const { connectionSettings, endpoint } = await options.useFactory(
-              ...args,
-            );
-            return new EventStore(connectionSettings, endpoint);
+            const { settings, endpoint, credentials } =
+              await options.useFactory(...args);
+            return new EventStore(settings, endpoint, credentials);
           },
           inject: options.inject,
         },

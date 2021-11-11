@@ -1,4 +1,4 @@
-import { CqrsModule, EventBus, CommandBus, QueryBus } from '@nestjs/cqrs';
+import { EventBus, CommandBus, QueryBus } from '@nestjs/cqrs';
 import { Global, Module, DynamicModule } from '@nestjs/common';
 import { EventBusProvider, EventStoreBusConfig } from './event-bus.provider';
 import { EventStore } from '../event-store.class';

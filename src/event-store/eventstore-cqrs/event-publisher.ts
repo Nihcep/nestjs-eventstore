@@ -25,6 +25,9 @@ export class EventPublisher {
     object.publish = (event: IEvent) => {
       eventBus.publish(event, (event as IAggregateEvent).streamName);
     };
+    object.publishAll = (events: IEvent[]) => {
+      eventBus.publishAll(events)
+    }
     return object;
   }
 }
